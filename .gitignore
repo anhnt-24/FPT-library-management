@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Claude Code (bỏ qua toàn bộ cấu hình cục bộ, gồm cả CLAUDE.md)
+.claude/
+CLAUDE.md
+
+# Biến môi trường
+.env
+.env.local
+.env.*.local
+
+# Log
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+*.local
