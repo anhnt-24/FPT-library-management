@@ -1,13 +1,12 @@
-// Lưu refresh token in-memory (mất khi restart). Token là chuỗi ngẫu nhiên opaque.
-// Bản ghi: { token, userId, expiresAt(ISO) }
-let tokens = [];
+// Data-access refresh token — lưu ở SQLite (xem ../db.js). Giữ nguyên interface cũ.
+import db from '../db.js';
 
 export function add(token, userId, expiresAt) {
-  tokens.push({ token, userId, expiresAt });
+  db.prepare('INSERT OR REPLACE INTO refresh_tokens (token,userId,expiresAt) VALUES (?,?,?)').run(token, userId, expiresAt);
 }
 
 export function get(token) {
-  const rec = tokens.find((t) => t.token === token);
+  const rec = db.prepare('SELECT * FROM refresh_tokens WHERE token = ?').get(token);
   if (!rec) return null;
   if (new Date(rec.expiresAt) < new Date()) {
     remove(token);
@@ -21,10 +20,9 @@ export function has(token) {
 }
 
 export function remove(token) {
-  const i = tokens.findIndex((t) => t.token === token);
-  if (i !== -1) tokens.splice(i, 1);
+  db.prepare('DELETE FROM refresh_tokens WHERE token = ?').run(token);
 }
 
 export function removeByUser(userId) {
-  tokens = tokens.filter((t) => t.userId !== userId);
+  db.prepare('DELETE FROM refresh_tokens WHERE userId = ?').run(userId);
 }

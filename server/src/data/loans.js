@@ -1,43 +1,51 @@
-// Mock in-memory phiếu mượn. Mất khi restart server.
-// Loan: { id, userId, bookId, status, requestedAt, borrowedAt, dueDate, returnedAt, fineAmount }
-let loans = [];
-let nextId = 1;
+// Data-access phiếu mượn — lưu ở SQLite (xem ../db.js). Giữ nguyên interface cũ.
+import db from '../db.js';
+
+const COLS = ['userId', 'bookId', 'status', 'requestedAt', 'borrowedAt', 'dueDate', 'returnedAt', 'fineAmount'];
 
 export function getAll() {
-  return loans;
+  return db.prepare('SELECT * FROM loans').all();
 }
 
 export function getById(id) {
-  return loans.find((l) => l.id === id);
+  return db.prepare('SELECT * FROM loans WHERE id = ?').get(id);
 }
 
 export function getByUser(userId) {
-  return loans.filter((l) => l.userId === userId);
+  return db.prepare('SELECT * FROM loans WHERE userId = ?').all(userId);
 }
 
 export function getByBook(bookId) {
-  return loans.filter((l) => l.bookId === bookId);
+  return db.prepare('SELECT * FROM loans WHERE bookId = ?').all(bookId);
 }
 
 export function create(data) {
-  const loan = {
-    id: nextId++,
-    status: 'pending',
-    requestedAt: new Date().toISOString(),
-    borrowedAt: null,
-    dueDate: null,
-    returnedAt: null,
-    fineAmount: 0,
-    ...data,
+  const row = {
+    userId: data.userId,
+    bookId: data.bookId,
+    status: data.status || 'pending',
+    requestedAt: data.requestedAt || new Date().toISOString(),
+    borrowedAt: data.borrowedAt ?? null,
+    dueDate: data.dueDate ?? null,
+    returnedAt: data.returnedAt ?? null,
+    fineAmount: data.fineAmount ?? 0,
   };
-  loans.push(loan);
-  return loan;
+  const info = db
+    .prepare(
+      `INSERT INTO loans (userId,bookId,status,requestedAt,borrowedAt,dueDate,returnedAt,fineAmount)
+       VALUES (@userId,@bookId,@status,@requestedAt,@borrowedAt,@dueDate,@returnedAt,@fineAmount)`
+    )
+    .run(row);
+  return getById(info.lastInsertRowid);
 }
 
 export function update(id, data) {
-  const loan = getById(id);
-  if (!loan) return null;
-  const { id: _ignore, ...rest } = data;
-  Object.assign(loan, rest);
-  return loan;
+  const keys = Object.keys(data).filter((k) => COLS.includes(k));
+  if (keys.length) {
+    const params = { id };
+    keys.forEach((k) => (params[k] = data[k]));
+    const set = keys.map((k) => `${k} = @${k}`).join(', ');
+    db.prepare(`UPDATE loans SET ${set} WHERE id = @id`).run(params);
+  }
+  return getById(id) || null;
 }

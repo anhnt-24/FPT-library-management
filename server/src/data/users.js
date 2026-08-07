@@ -1,59 +1,52 @@
-// Mock "database" người dùng trong bộ nhớ. Mất khi restart server.
-// User: { id, name, email, passwordHash, role, status, lateReturnCount, createdAt }
-import bcrypt from 'bcryptjs';
+// Data-access người dùng — lưu ở SQLite (xem ../db.js). Giữ nguyên interface cũ.
+import db from '../db.js';
 
-let users = [
-  {
-    id: 1,
-    name: 'Thủ thư',
-    email: 'admin@fpt.edu.vn',
-    passwordHash: bcrypt.hashSync('admin123', 10), // tài khoản admin seed sẵn
-    role: 'admin',
-    status: 'active',
-    lateReturnCount: 0,
-    createdAt: new Date().toISOString(),
-  },
-];
-let nextId = 2;
+const COLS = ['name', 'email', 'passwordHash', 'role', 'status', 'lateReturnCount', 'createdAt'];
 
 export function getAll() {
-  return users;
+  return db.prepare('SELECT * FROM users').all();
 }
 
 export function getById(id) {
-  return users.find((u) => u.id === id);
+  return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
 }
 
 export function getByEmail(email) {
-  return users.find((u) => u.email.toLowerCase() === String(email).toLowerCase());
+  return db.prepare('SELECT * FROM users WHERE lower(email) = lower(?)').get(String(email));
 }
 
 export function create(data) {
-  const user = {
-    id: nextId++,
-    role: 'member',
-    status: 'active',
-    lateReturnCount: 0,
-    createdAt: new Date().toISOString(),
-    ...data,
+  const row = {
+    name: data.name,
+    email: data.email,
+    passwordHash: data.passwordHash,
+    role: data.role || 'member',
+    status: data.status || 'active',
+    lateReturnCount: data.lateReturnCount || 0,
+    createdAt: data.createdAt || new Date().toISOString(),
   };
-  users.push(user);
-  return user;
+  const info = db
+    .prepare(
+      `INSERT INTO users (name,email,passwordHash,role,status,lateReturnCount,createdAt)
+       VALUES (@name,@email,@passwordHash,@role,@status,@lateReturnCount,@createdAt)`
+    )
+    .run(row);
+  return getById(info.lastInsertRowid);
 }
 
 export function update(id, data) {
-  const user = getById(id);
-  if (!user) return null;
-  const { id: _ignore, ...rest } = data;
-  Object.assign(user, rest);
-  return user;
+  const keys = Object.keys(data).filter((k) => COLS.includes(k));
+  if (keys.length) {
+    const params = { id };
+    keys.forEach((k) => (params[k] = data[k]));
+    const set = keys.map((k) => `${k} = @${k}`).join(', ');
+    db.prepare(`UPDATE users SET ${set} WHERE id = @id`).run(params);
+  }
+  return getById(id) || null;
 }
 
 export function remove(id) {
-  const index = users.findIndex((u) => u.id === id);
-  if (index === -1) return false;
-  users.splice(index, 1);
-  return true;
+  return db.prepare('DELETE FROM users WHERE id = ?').run(id).changes > 0;
 }
 
 // Bỏ passwordHash trước khi trả về client.

@@ -5,6 +5,11 @@ node_modules/
 dist/
 build/
 
+# SQLite (file DB runtime, seed lại khi chạy)
+*.db
+*.db-wal
+*.db-shm
+
 # Claude Code (bỏ qua toàn bộ cấu hình cục bộ, gồm cả CLAUDE.md)
 .claude/
 CLAUDE.md
