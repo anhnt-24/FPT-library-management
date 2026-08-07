@@ -1,32 +1,12 @@
-const BASE = '/api/books';
+import request from './client.js';
 
-export async function fetchBooks() {
-  const res = await fetch(BASE);
-  if (!res.ok) throw new Error('Không tải được danh sách sách');
-  return res.json();
-}
+export const list = (params = {}) => request('/books?' + new URLSearchParams(params));
+export const get = (id) => request('/books/' + id);
+export const filters = () => request('/books/meta/filters');
+export const create = (data) => request('/books', { method: 'POST', body: data, auth: true });
+export const update = (id, data) => request('/books/' + id, { method: 'PUT', body: data, auth: true });
+export const remove = (id) => request('/books/' + id, { method: 'DELETE', auth: true });
 
-export async function createBook(data) {
-  const res = await fetch(BASE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error('Không thêm được sách');
-  return res.json();
-}
-
-export async function updateBook(id, data) {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error('Không cập nhật được sách');
-  return res.json();
-}
-
-export async function deleteBook(id) {
-  const res = await fetch(`${BASE}/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Không xoá được sách');
-}
+export const reviews = (id) => request(`/books/${id}/reviews`);
+export const addReview = (id, data) => request(`/books/${id}/reviews`, { method: 'POST', body: data, auth: true });
+export const qrUrl = (id) => `/api/books/${id}/qrcode`;
