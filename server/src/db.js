@@ -50,6 +50,15 @@ db.exec(`
     userId INTEGER NOT NULL,
     expiresAt TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL,
+    bookId INTEGER NOT NULL,
+    rating INTEGER NOT NULL,
+    comment TEXT DEFAULT '',
+    createdAt TEXT NOT NULL,
+    UNIQUE(userId, bookId)
+  );
 `);
 
 seedIfEmpty();

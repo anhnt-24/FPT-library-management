@@ -5,6 +5,9 @@ import booksRouter from './routes/books.js';
 import loansRouter from './routes/loans.js';
 import readersRouter from './routes/readers.js';
 import dashboardRouter from './routes/dashboard.js';
+import reviewsRouter from './routes/reviews.js';
+import recommendationsRouter from './routes/recommendations.js';
+import reportsRouter from './routes/reports.js';
 
 const app = express();
 
@@ -21,6 +24,9 @@ app.use('/api/books', booksRouter);
 app.use('/api/loans', loansRouter);
 app.use('/api/readers', readersRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/recommendations', recommendationsRouter);
+app.use('/api/reports', reportsRouter);
+app.use('/api', reviewsRouter); // /api/books/:id/reviews, /api/reviews/:id, /api/books/:id/qrcode
 
 // Không khớp route nào
 app.use((req, res) => {
