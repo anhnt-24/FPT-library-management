@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import authRouter from './routes/auth.js';
 import booksRouter from './routes/books.js';
 
 const app = express();
@@ -12,6 +13,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'FPT Library Management API', books: '/api/books' });
 });
 
+app.use('/api/auth', authRouter);
 app.use('/api/books', booksRouter);
 
 // Không khớp route nào
