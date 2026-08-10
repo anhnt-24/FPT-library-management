@@ -1,3 +1,4 @@
+import 'dotenv/config'; // nạp biến môi trường từ server/.env (nếu có) — phải chạy TRƯỚC mọi import khác
 import app from './app.js';
 import { startScheduler } from './services/scheduler.js';
 
