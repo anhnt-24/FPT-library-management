@@ -1,30 +1,31 @@
 import { useEffect, useState } from 'react';
-import * as loansApi from '../../api/loans.js';
-import * as booksApi from '../../api/books.js';
-import * as reportsApi from '../../api/reports.js';
+import * as loansApi from '../../api/loans';
+import * as booksApi from '../../api/books';
+import * as reportsApi from '../../api/reports';
+import type { Loan, Book } from '../../types';
 
-const STATUS = { pending: 'Chờ duyệt', borrowing: 'Đang mượn', returned: 'Đã trả', overdue: 'Quá hạn', rejected: 'Từ chối' };
-const fmt = (d) => (d ? new Date(d).toLocaleDateString('vi-VN') : '—');
+const STATUS: Record<string, string> = { pending: 'Chờ duyệt', borrowing: 'Đang mượn', returned: 'Đã trả', overdue: 'Quá hạn', rejected: 'Từ chối' };
+const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString('vi-VN') : '—');
 
 export default function AdminLoansPage() {
-  const [loans, setLoans] = useState([]);
-  const [books, setBooks] = useState({});
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [books, setBooks] = useState<Record<number, Book>>({});
   const [filter, setFilter] = useState('');
   const [err, setErr] = useState('');
 
   function load() {
     loansApi.all(filter ? { status: filter } : {}).then(async (ls) => {
       setLoans(ls);
-      const map = {};
+      const map: Record<number, Book> = {};
       await Promise.all([...new Set(ls.map((l) => l.bookId))].map((id) => booksApi.get(id).then((b) => (map[id] = b)).catch(() => {})));
       setBooks(map);
     });
   }
   useEffect(load, [filter]);
 
-  async function act(fn, id) {
+  async function act(fn: (id: number) => Promise<unknown>, id: number) {
     setErr('');
-    try { await fn(id); load(); } catch (e) { setErr(e.message); }
+    try { await fn(id); load(); } catch (e: any) { setErr(e.message); }
   }
 
   return (

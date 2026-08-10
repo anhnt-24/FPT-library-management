@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import * as readersApi from '../../api/readers.js';
+import * as readersApi from '../../api/readers';
+import type { Reader, Loan } from '../../types';
 
-const STATUS = { pending: 'Chờ duyệt', borrowing: 'Đang mượn', returned: 'Đã trả', overdue: 'Quá hạn', rejected: 'Từ chối' };
-const fmt = (d) => (d ? new Date(d).toLocaleDateString('vi-VN') : '—');
+const STATUS: Record<string, string> = { pending: 'Chờ duyệt', borrowing: 'Đang mượn', returned: 'Đã trả', overdue: 'Quá hạn', rejected: 'Từ chối' };
+const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString('vi-VN') : '—');
 
 export default function ReadersPage() {
-  const [readers, setReaders] = useState([]);
-  const [detail, setDetail] = useState(null);
-  const [history, setHistory] = useState([]);
+  const [readers, setReaders] = useState<Reader[]>([]);
+  const [detail, setDetail] = useState<Reader | null>(null);
+  const [history, setHistory] = useState<Loan[]>([]);
   const [err, setErr] = useState('');
 
   function load() {
@@ -15,19 +16,19 @@ export default function ReadersPage() {
   }
   useEffect(load, []);
 
-  async function open(r) {
+  async function open(r: Reader) {
     setDetail(r);
     setHistory(await readersApi.loans(r.id));
   }
 
-  async function toggle(r) {
+  async function toggle(r: Reader) {
     setErr('');
     try {
       if (r.status === 'locked') await readersApi.unlock(r.id);
       else await readersApi.lock(r.id);
       load();
       if (detail && detail.id === r.id) setDetail({ ...r, status: r.status === 'locked' ? 'active' : 'locked' });
-    } catch (e) { setErr(e.message); }
+    } catch (e: any) { setErr(e.message); }
   }
 
   return (

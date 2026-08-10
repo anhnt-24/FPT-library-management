@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -9,13 +9,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [err, setErr] = useState('');
 
-  async function submit(e) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr('');
     try {
       const u = await login(email, password);
       nav(u.role === 'admin' ? '/admin/dashboard' : '/');
-    } catch (e) {
+    } catch (e: any) {
       setErr(e.message);
     }
   }

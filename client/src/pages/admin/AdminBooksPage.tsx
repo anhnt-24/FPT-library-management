@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import * as booksApi from '../../api/books.js';
+import * as booksApi from '../../api/books';
+import type { Book } from '../../types';
 
-const EMPTY = { title: '', author: '', publisher: '', category: '', year: '', isbn: '', description: '', totalCopies: 1 };
+const EMPTY = { title: '', author: '', publisher: '', category: '', year: '' as string | number | null, isbn: '', description: '', totalCopies: 1 as string | number };
 
 export default function AdminBooksPage() {
-  const [books, setBooks] = useState([]);
-  const [form, setForm] = useState(EMPTY);
-  const [editing, setEditing] = useState(null);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [form, setForm] = useState<Record<string, any>>({ ...EMPTY });
+  const [editing, setEditing] = useState<number | null>(null);
   const [err, setErr] = useState('');
 
   function load() {
@@ -14,31 +15,31 @@ export default function AdminBooksPage() {
   }
   useEffect(load, []);
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value });
 
-  function edit(b) {
+  function edit(b: Book) {
     setEditing(b.id);
     setForm({ ...EMPTY, ...b });
     window.scrollTo(0, 0);
   }
 
-  async function submit(e) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr('');
     try {
       const payload = { ...form, year: form.year ? Number(form.year) : null, totalCopies: Number(form.totalCopies) };
       if (editing) await booksApi.update(editing, payload);
       else await booksApi.create(payload);
-      setForm(EMPTY);
+      setForm({ ...EMPTY });
       setEditing(null);
       load();
-    } catch (e) { setErr(e.message); }
+    } catch (e: any) { setErr(e.message); }
   }
 
-  async function del(id) {
+  async function del(id: number) {
     if (!confirm('Xóa sách này?')) return;
     setErr('');
-    try { await booksApi.remove(id); load(); } catch (e) { setErr(e.message); }
+    try { await booksApi.remove(id); load(); } catch (e: any) { setErr(e.message); }
   }
 
   return (
@@ -55,7 +56,7 @@ export default function AdminBooksPage() {
         <input placeholder="Số lượng" type="number" min="1" value={form.totalCopies} onChange={set('totalCopies')} />
         <input placeholder="Mô tả" value={form.description} onChange={set('description')} />
         <button className="btn-primary" type="submit">{editing ? 'Cập nhật' : 'Thêm sách'}</button>
-        {editing && <button type="button" onClick={() => { setEditing(null); setForm(EMPTY); }}>Hủy</button>}
+        {editing && <button type="button" onClick={() => { setEditing(null); setForm({ ...EMPTY }); }}>Hủy</button>}
       </form>
 
       <table className="table">

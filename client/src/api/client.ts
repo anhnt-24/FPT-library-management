@@ -1,26 +1,36 @@
-// Lớp gọi HTTP duy nhất: gắn access token, tự refresh 1 lần khi 401. Mọi api/*.js đi qua đây.
+// Lớp gọi HTTP duy nhất: gắn access token, tự refresh 1 lần khi 401. Mọi api/*.ts đi qua đây.
 const ACCESS = 'lib_access';
 const REFRESH = 'lib_refresh';
 
 export const tokenStore = {
-  get access() {
+  get access(): string | null {
     return localStorage.getItem(ACCESS);
   },
-  get refresh() {
+  get refresh(): string | null {
     return localStorage.getItem(REFRESH);
   },
-  set({ accessToken, refreshToken }) {
+  set({ accessToken, refreshToken }: { accessToken?: string; refreshToken?: string }): void {
     if (accessToken) localStorage.setItem(ACCESS, accessToken);
     if (refreshToken) localStorage.setItem(REFRESH, refreshToken);
   },
-  clear() {
+  clear(): void {
     localStorage.removeItem(ACCESS);
     localStorage.removeItem(REFRESH);
   },
 };
 
-export default async function request(path, { method = 'GET', body, auth = false } = {}, retry = true) {
-  const headers = {};
+interface RequestOptions {
+  method?: string;
+  body?: unknown;
+  auth?: boolean;
+}
+
+export default async function request<T = any>(
+  path: string,
+  { method = 'GET', body, auth = false }: RequestOptions = {},
+  retry = true
+): Promise<T> {
+  const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (auth && tokenStore.access) headers.Authorization = 'Bearer ' + tokenStore.access;
 
@@ -40,13 +50,13 @@ export default async function request(path, { method = 'GET', body, auth = false
     if (r.ok) {
       const { accessToken } = await r.json();
       tokenStore.set({ accessToken });
-      return request(path, { method, body, auth }, false);
+      return request<T>(path, { method, body, auth }, false);
     }
     tokenStore.clear();
   }
 
-  if (res.status === 204) return null;
+  if (res.status === 204) return null as T;
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.message) || 'Có lỗi xảy ra');
-  return data;
+  return data as T;
 }

@@ -1,15 +1,15 @@
 import { Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
-import BooksPage from './pages/BooksPage.jsx';
-import BookDetailPage from './pages/BookDetailPage.jsx';
-import LoginPage from './pages/LoginPage.jsx';
-import RegisterPage from './pages/RegisterPage.jsx';
-import MyLoansPage from './pages/MyLoansPage.jsx';
-import DashboardPage from './pages/admin/DashboardPage.jsx';
-import AdminBooksPage from './pages/admin/AdminBooksPage.jsx';
-import AdminLoansPage from './pages/admin/AdminLoansPage.jsx';
-import ReadersPage from './pages/admin/ReadersPage.jsx';
+import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
+import BooksPage from './pages/BooksPage';
+import BookDetailPage from './pages/BookDetailPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import MyLoansPage from './pages/MyLoansPage';
+import DashboardPage from './pages/admin/DashboardPage';
+import AdminBooksPage from './pages/admin/AdminBooksPage';
+import AdminLoansPage from './pages/admin/AdminLoansPage';
+import ReadersPage from './pages/admin/ReadersPage';
 
 export default function App() {
   return (

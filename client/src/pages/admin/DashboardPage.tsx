@@ -3,15 +3,16 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
 } from 'recharts';
-import * as dash from '../../api/dashboard.js';
+import * as dash from '../../api/dashboard';
+import type { Summary, MostBorrowed, BorrowStat, CategoryStat } from '../../api/dashboard';
 
 const COLORS = ['#2c6fbb', '#59a14f', '#e15759', '#f28e2b', '#76b7b2', '#edc948', '#b07aa1'];
 
 export default function DashboardPage() {
-  const [s, setS] = useState(null);
-  const [top, setTop] = useState([]);
-  const [stats, setStats] = useState([]);
-  const [cat, setCat] = useState([]);
+  const [s, setS] = useState<Summary | null>(null);
+  const [top, setTop] = useState<MostBorrowed[]>([]);
+  const [stats, setStats] = useState<BorrowStat[]>([]);
+  const [cat, setCat] = useState<CategoryStat[]>([]);
   const [group, setGroup] = useState('month');
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function DashboardPage() {
   }, [group]);
 
   if (!s) return <p className="muted">Đang tải...</p>;
-  const kpis = [
+  const kpis: [string, number][] = [
     ['Đầu sách', s.totalTitles], ['Tổng bản', s.totalCopies], ['Đang mượn', s.borrowing],
     ['Quá hạn', s.overdue], ['Độc giả', s.totalReaders],
   ];
@@ -75,7 +76,7 @@ export default function DashboardPage() {
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={cat} dataKey="count" nameKey="category" outerRadius={80} label isAnimationActive={false}>
-                {cat.map((e, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                {cat.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Pie>
               <Tooltip />
             </PieChart>

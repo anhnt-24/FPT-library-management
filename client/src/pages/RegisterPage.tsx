@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../context/AuthContext';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -8,18 +8,18 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [err, setErr] = useState('');
 
-  async function submit(e) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr('');
     try {
       await register(form);
       nav('/');
-    } catch (e) {
+    } catch (e: any) {
       setErr(e.message);
     }
   }
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value });
 
   return (
     <div className="auth-card">

@@ -1,28 +1,29 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import * as loansApi from '../api/loans.js';
-import * as booksApi from '../api/books.js';
-import * as recApi from '../api/recommendations.js';
+import * as loansApi from '../api/loans';
+import * as booksApi from '../api/books';
+import * as recApi from '../api/recommendations';
+import type { Loan, Book } from '../types';
 
-const STATUS = { pending: 'Chờ duyệt', borrowing: 'Đang mượn', returned: 'Đã trả', overdue: 'Quá hạn', rejected: 'Từ chối' };
-const fmt = (d) => (d ? new Date(d).toLocaleDateString('vi-VN') : '—');
+const STATUS: Record<string, string> = { pending: 'Chờ duyệt', borrowing: 'Đang mượn', returned: 'Đã trả', overdue: 'Quá hạn', rejected: 'Từ chối' };
+const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString('vi-VN') : '—');
 
 export default function MyLoansPage() {
-  const [loans, setLoans] = useState([]);
-  const [books, setBooks] = useState({});
-  const [rec, setRec] = useState([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [books, setBooks] = useState<Record<number, Book>>({});
+  const [rec, setRec] = useState<Book[]>([]);
 
   useEffect(() => {
     loansApi.mine().then(async (ls) => {
       setLoans(ls);
-      const map = {};
+      const map: Record<number, Book> = {};
       await Promise.all([...new Set(ls.map((l) => l.bookId))].map((id) => booksApi.get(id).then((b) => (map[id] = b)).catch(() => {})));
       setBooks(map);
     });
     recApi.list().then(setRec).catch(() => {});
   }, []);
 
-  const dueSoon = (l) => l.status === 'borrowing' && l.dueDate && new Date(l.dueDate) - Date.now() < 2 * 86400000;
+  const dueSoon = (l: Loan) => l.status === 'borrowing' && !!l.dueDate && new Date(l.dueDate).getTime() - Date.now() < 2 * 86400000;
 
   return (
     <div>

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import * as booksApi from '../api/books.js';
+import * as booksApi from '../api/books';
+import type { Book, Paged, Filters } from '../types';
 
 export default function BooksPage() {
-  const [data, setData] = useState({ items: [], total: 0, page: 1, limit: 12 });
-  const [opts, setOpts] = useState({ categories: [], authors: [], publishers: [], years: [] });
+  const [data, setData] = useState<Paged<Book>>({ items: [], total: 0, page: 1, limit: 12 });
+  const [opts, setOpts] = useState<Filters>({ categories: [], authors: [], publishers: [], years: [] });
   const [q, setQ] = useState('');
   const [f, setF] = useState({ category: '', author: '', publisher: '', year: '' });
   const [page, setPage] = useState(1);
@@ -17,18 +18,18 @@ export default function BooksPage() {
 
   useEffect(() => {
     setLoading(true);
-    const params = { page, limit: 12 };
+    const params: Record<string, any> = { page, limit: 12 };
     if (q) params.q = q;
     Object.entries(f).forEach(([k, v]) => { if (v) params[k] = v; });
     booksApi
       .list(params)
       .then((d) => { setData(d); setErr(''); })
-      .catch((e) => setErr(e.message))
+      .catch((e: any) => setErr(e.message))
       .finally(() => setLoading(false));
   }, [page, q, f]);
 
   const pages = Math.ceil(data.total / data.limit) || 1;
-  const onFilter = (k) => (e) => { setPage(1); setF({ ...f, [k]: e.target.value }); };
+  const onFilter = (k: string) => (e: React.ChangeEvent<HTMLSelectElement>) => { setPage(1); setF({ ...f, [k]: e.target.value }); };
 
   return (
     <div>

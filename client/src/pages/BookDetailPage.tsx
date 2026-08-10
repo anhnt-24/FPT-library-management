@@ -1,22 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import * as booksApi from '../api/books.js';
-import * as loansApi from '../api/loans.js';
-import { useAuth } from '../context/AuthContext.jsx';
+import * as booksApi from '../api/books';
+import * as loansApi from '../api/loans';
+import { useAuth } from '../context/AuthContext';
+import type { Book, Review } from '../types';
 
 export default function BookDetailPage() {
   const { id } = useParams();
   const { user, isAdmin } = useAuth();
-  const [book, setBook] = useState(null);
-  const [rev, setRev] = useState({ items: [], average: 0, count: 0 });
-  const [rating, setRating] = useState(5);
+  const [book, setBook] = useState<Book | null>(null);
+  const [rev, setRev] = useState<{ items: Review[]; average: number; count: number }>({ items: [], average: 0, count: 0 });
+  const [rating, setRating] = useState('5');
   const [comment, setComment] = useState('');
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
 
   function load() {
-    booksApi.get(id).then(setBook).catch((e) => setErr(e.message));
-    booksApi.reviews(id).then(setRev).catch(() => {});
+    booksApi.get(id!).then(setBook).catch((e: any) => setErr(e.message));
+    booksApi.reviews(id!).then(setRev).catch(() => {});
   }
   useEffect(load, [id]);
 
@@ -25,18 +26,18 @@ export default function BookDetailPage() {
     try {
       await loansApi.create(Number(id));
       setMsg('Đã gửi yêu cầu mượn, chờ thủ thư duyệt.');
-    } catch (e) { setErr(e.message); }
+    } catch (e: any) { setErr(e.message); }
   }
 
-  async function submitReview(e) {
+  async function submitReview(e: React.FormEvent) {
     e.preventDefault();
     setErr(''); setMsg('');
     try {
-      await booksApi.addReview(id, { rating: Number(rating), comment });
+      await booksApi.addReview(id!, { rating: Number(rating), comment });
       setComment('');
       setMsg('Đã gửi đánh giá.');
       load();
-    } catch (e) { setErr(e.message); }
+    } catch (e: any) { setErr(e.message); }
   }
 
   if (!book) return <p className="muted">Đang tải...</p>;
