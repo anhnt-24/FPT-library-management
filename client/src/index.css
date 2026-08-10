@@ -27,6 +27,9 @@ h1 { font-size: 1.5rem; } h2 { font-size: 1.2rem; }
 .nav-auth { display: flex; align-items: center; gap: 12px; }
 .btn-link-primary { background: var(--primary); color: #fff !important; padding: 6px 14px; border-radius: 6px; }
 
+.hamburger { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 4px 8px; color: var(--ink); }
+.hamburger:hover { background: #f0f3f7; }
+
 .container { max-width: 1080px; margin: 24px auto; padding: 0 20px; }
 
 /* Buttons */
@@ -113,4 +116,23 @@ input, select { padding: 9px 11px; border: 1px solid var(--line); border-radius:
   .kpi-row { grid-template-columns: repeat(2, 1fr); }
   .charts { grid-template-columns: 1fr; }
   .admin-form { grid-template-columns: 1fr 1fr; }
+
+  /* Mobile navbar */
+  .hamburger { display: block; }
+  .nav-links {
+    position: absolute;
+    top: 58px;
+    left: 0;
+    right: 0;
+    background: var(--card);
+    flex-direction: column;
+    padding: 12px 24px;
+    gap: 12px;
+    border-bottom: 1px solid var(--line);
+    display: none;
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a { padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .nav-links a:last-child { border-bottom: none; }
+  .navbar { padding: 0 16px; }
 }

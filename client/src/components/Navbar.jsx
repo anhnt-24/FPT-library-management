@@ -1,21 +1,27 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useState } from 'react';
 
 export default function Navbar() {
   const { user, isAdmin, logout } = useAuth();
   const nav = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <nav className="navbar">
       <Link to="/" className="brand">📚 Thư viện FPT</Link>
-      <div className="nav-links">
-        <Link to="/">Sách</Link>
-        {user && !isAdmin && <Link to="/my-loans">Phiếu của tôi</Link>}
+      <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
+        {menuOpen ? '✕' : '☰'}
+      </button>
+      <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
+        <Link to="/" onClick={() => setMenuOpen(false)}>Sách</Link>
+        {user && !isAdmin && <Link to="/my-loans" onClick={() => setMenuOpen(false)}>Phiếu của tôi</Link>}
         {isAdmin && (
           <>
-            <Link to="/admin/dashboard">Dashboard</Link>
-            <Link to="/admin/books">Quản lý sách</Link>
-            <Link to="/admin/loans">Mượn/Trả</Link>
-            <Link to="/admin/readers">Độc giả</Link>
+            <Link to="/admin/dashboard" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+            <Link to="/admin/books" onClick={() => setMenuOpen(false)}>Quản lý sách</Link>
+            <Link to="/admin/loans" onClick={() => setMenuOpen(false)}>Mượn/Trả</Link>
+            <Link to="/admin/readers" onClick={() => setMenuOpen(false)}>Độc giả</Link>
           </>
         )}
       </div>
