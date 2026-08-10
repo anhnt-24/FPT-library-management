@@ -4,11 +4,12 @@ import * as loans from '../data/loans.js';
 import auth from '../middleware/auth.js';
 import requireRole from '../middleware/requireRole.js';
 import { LATE_LOCK_THRESHOLD } from '../config.js';
+import type { User } from '../types.js';
 
 const router = Router();
 router.use(auth, requireRole('admin')); // toàn bộ route quản lý độc giả chỉ dành cho admin
 
-function summary(u) {
+function summary(u: User) {
   const mine = loans.getByUser(u.id);
   return {
     ...users.toPublic(u),
@@ -20,12 +21,10 @@ function summary(u) {
 
 // GET /api/readers — danh sách độc giả (role=member) + chỉ số
 router.get('/', (req, res) => {
-  const q = (req.query.q || '').toLowerCase();
+  const q = String(req.query.q || '').toLowerCase();
   let members = users.getAll().filter((u) => u.role === 'member');
   if (q) {
-    members = members.filter(
-      (u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    );
+    members = members.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
   }
   res.json(members.map(summary));
 });
@@ -50,14 +49,14 @@ router.get('/:id/loans', (req, res) => {
 router.patch('/:id/lock', (req, res) => {
   const u = users.getById(Number(req.params.id));
   if (!u || u.role !== 'member') return res.status(404).json({ message: 'Không tìm thấy độc giả' });
-  res.json(users.toPublic(users.update(u.id, { status: 'locked' })));
+  res.json(users.toPublic(users.update(u.id, { status: 'locked' })!));
 });
 
 // PATCH /api/readers/:id/unlock — mở khóa
 router.patch('/:id/unlock', (req, res) => {
   const u = users.getById(Number(req.params.id));
   if (!u || u.role !== 'member') return res.status(404).json({ message: 'Không tìm thấy độc giả' });
-  res.json(users.toPublic(users.update(u.id, { status: 'active' })));
+  res.json(users.toPublic(users.update(u.id, { status: 'active' })!));
 });
 
 export default router;

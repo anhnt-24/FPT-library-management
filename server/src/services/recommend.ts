@@ -1,14 +1,15 @@
 import * as books from '../data/books.js';
 import * as loans from '../data/loans.js';
+import type { Book } from '../types.js';
 
 // Gợi ý content-based: ưu tiên sách cùng thể loại/tác giả member từng mượn,
 // loại sách đã mượn, chỉ gợi sách còn bản. Member mới → fallback theo số bản/độ phổ biến.
-export function recommendFor(userId, limit = 6) {
+export function recommendFor(userId: number, limit = 6): Book[] {
   const myLoans = loans.getByUser(userId).filter((l) => l.status !== 'rejected');
   const borrowedIds = new Set(myLoans.map((l) => l.bookId));
 
-  const catScore = {};
-  const authScore = {};
+  const catScore: Record<string, number> = {};
+  const authScore: Record<string, number> = {};
   myLoans.forEach((l) => {
     const b = books.getById(l.bookId);
     if (b) {

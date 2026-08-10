@@ -7,7 +7,7 @@ const router = Router();
 
 // GET /api/books (công khai) — lọc + tìm kiếm + phân trang → { items, total, page, limit }
 router.get('/', (req, res) => {
-  const { q, category, author, publisher, year } = req.query;
+  const { q, category, author, publisher, year } = req.query as Record<string, string | undefined>;
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 12));
   const all = db.search({ q, category, author, publisher, year });
@@ -59,9 +59,7 @@ router.put('/:id', auth, requireRole('admin'), (req, res) => {
     const borrowed = book.totalCopies - book.availableCopies;
     const total = Number(data.totalCopies);
     if (Number.isNaN(total) || total < borrowed) {
-      return res
-        .status(409)
-        .json({ message: `Số lượng không hợp lệ (đang có ${borrowed} bản được mượn)` });
+      return res.status(409).json({ message: `Số lượng không hợp lệ (đang có ${borrowed} bản được mượn)` });
     }
     data.totalCopies = total;
     data.availableCopies = total - borrowed;

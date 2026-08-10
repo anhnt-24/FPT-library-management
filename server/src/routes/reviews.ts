@@ -24,16 +24,16 @@ router.post('/books/:bookId/reviews', auth, (req, res) => {
   const bookId = Number(req.params.bookId);
   const rating = Number(req.body.rating);
   if (!(rating >= 1 && rating <= 5)) return res.status(400).json({ message: 'rating phải từ 1 đến 5' });
-  const returned = loans.getByUser(req.user.id).some((l) => l.bookId === bookId && l.status === 'returned');
+  const returned = loans.getByUser(req.user!.id).some((l) => l.bookId === bookId && l.status === 'returned');
   if (!returned) return res.status(403).json({ message: 'Chỉ đánh giá sách bạn đã mượn và đã trả' });
-  res.status(201).json(reviews.upsert(req.user.id, bookId, rating, req.body.comment || ''));
+  res.status(201).json(reviews.upsert(req.user!.id, bookId, rating, req.body.comment || ''));
 });
 
 // DELETE /api/reviews/:id (chủ review hoặc admin)
 router.delete('/reviews/:id', auth, (req, res) => {
   const rv = reviews.getById(Number(req.params.id));
   if (!rv) return res.status(404).json({ message: 'Không tìm thấy đánh giá' });
-  if (req.user.role !== 'admin' && rv.userId !== req.user.id) {
+  if (req.user!.role !== 'admin' && rv.userId !== req.user!.id) {
     return res.status(403).json({ message: 'Không đủ quyền' });
   }
   reviews.remove(rv.id);

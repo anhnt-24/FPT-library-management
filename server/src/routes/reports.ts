@@ -8,7 +8,7 @@ import requireRole from '../middleware/requireRole.js';
 const router = Router();
 router.use(auth, requireRole('admin'));
 
-function csvEscape(v) {
+function csvEscape(v: unknown): string {
   const s = String(v ?? '');
   return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
@@ -16,7 +16,7 @@ function csvEscape(v) {
 // GET /api/reports/loans.csv?status=&from=&to= — xuất danh sách mượn/trả ra CSV
 router.get('/loans.csv', (req, res) => {
   let rows = loans.getAll();
-  const { status, from, to } = req.query;
+  const { status, from, to } = req.query as Record<string, string | undefined>;
   if (status) rows = rows.filter((l) => l.status === status);
   if (from) rows = rows.filter((l) => (l.borrowedAt || l.requestedAt || '') >= from);
   if (to) rows = rows.filter((l) => (l.borrowedAt || l.requestedAt || '') <= to);

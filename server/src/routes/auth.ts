@@ -6,13 +6,12 @@ import * as users from '../data/users.js';
 import * as refreshStore from '../data/refreshTokens.js';
 import auth from '../middleware/auth.js';
 import { ACCESS_SECRET, ACCESS_TTL, REFRESH_TTL_DAYS } from '../config.js';
+import type { User } from '../types.js';
 
 const router = Router();
 
-function issueTokens(user) {
-  const accessToken = jwt.sign({ sub: user.id, role: user.role }, ACCESS_SECRET, {
-    expiresIn: ACCESS_TTL,
-  });
+function issueTokens(user: User) {
+  const accessToken = jwt.sign({ sub: user.id, role: user.role }, ACCESS_SECRET, { expiresIn: ACCESS_TTL as any });
   const refreshToken = crypto.randomBytes(40).toString('hex');
   const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 86400 * 1000).toISOString();
   refreshStore.add(refreshToken, user.id, expiresAt);
@@ -58,9 +57,7 @@ router.post('/refresh', (req, res) => {
   if (!user || user.status === 'locked') {
     return res.status(401).json({ message: 'Không thể làm mới phiên' });
   }
-  const accessToken = jwt.sign({ sub: user.id, role: user.role }, ACCESS_SECRET, {
-    expiresIn: ACCESS_TTL,
-  });
+  const accessToken = jwt.sign({ sub: user.id, role: user.role }, ACCESS_SECRET, { expiresIn: ACCESS_TTL as any });
   res.json({ accessToken });
 });
 
@@ -73,7 +70,7 @@ router.post('/logout', (req, res) => {
 
 // GET /api/auth/me — thông tin người dùng hiện tại
 router.get('/me', auth, (req, res) => {
-  const user = users.getById(req.user.id);
+  const user = users.getById(req.user!.id);
   if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
   res.json({ user: users.toPublic(user) });
 });

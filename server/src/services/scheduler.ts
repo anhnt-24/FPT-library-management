@@ -6,7 +6,7 @@ import * as users from '../data/users.js';
 import { sendDueSoon, sendOverdue } from './email.js';
 import { calcFine } from './fine.js';
 
-export async function runReminderSweep(now = new Date()) {
+export async function runReminderSweep(now: Date = new Date()): Promise<{ reminded: number; overdue: number }> {
   let reminded = 0;
   let overdue = 0;
   for (const l of loans.getAll()) {
@@ -18,10 +18,10 @@ export async function runReminderSweep(now = new Date()) {
     const due = new Date(l.dueDate);
     if (now > due) {
       loans.update(l.id, { status: 'overdue' });
-      const days = Math.ceil((now - due) / 86400000);
+      const days = Math.ceil((now.getTime() - due.getTime()) / 86400000);
       await sendOverdue(u, b, l, days, calcFine(l.dueDate, now));
       overdue += 1;
-    } else if (Math.ceil((due - now) / 86400000) === 2) {
+    } else if (Math.ceil((due.getTime() - now.getTime()) / 86400000) === 2) {
       await sendDueSoon(u, b, l);
       reminded += 1;
     }
@@ -29,9 +29,9 @@ export async function runReminderSweep(now = new Date()) {
   return { reminded, overdue };
 }
 
-export function startScheduler() {
+export function startScheduler(): void {
   cron.schedule('0 8 * * *', () => {
-    runReminderSweep().catch((e) => console.error('scheduler error:', e.message));
+    runReminderSweep().catch((e) => console.error('scheduler error:', (e as Error).message));
   });
   console.log('⏰ Scheduler nhắc/quá hạn đã bật (08:00 hằng ngày)');
 }

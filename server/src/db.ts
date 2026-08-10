@@ -63,9 +63,9 @@ db.exec(`
 
 seedIfEmpty();
 
-function seedIfEmpty() {
-  const { c } = db.prepare('SELECT COUNT(*) AS c FROM users').get();
-  if (c > 0) return;
+function seedIfEmpty(): void {
+  const row = db.prepare('SELECT COUNT(*) AS c FROM users').get() as { c: number };
+  if (row.c > 0) return;
 
   const now = new Date().toISOString();
   const insUser = db.prepare(
@@ -96,7 +96,6 @@ function seedIfEmpty() {
     `INSERT INTO loans (userId,bookId,status,requestedAt,borrowedAt,dueDate,returnedAt,fineAmount)
      VALUES (@userId,@bookId,@status,@requestedAt,@borrowedAt,@dueDate,@returnedAt,@fineAmount)`
   );
-  // 1 phiếu đã trả (đúng hạn), 1 đang mượn (khớp Dế Mèn còn 4/5), 1 chờ duyệt.
   insLoan.run({ userId: r2.lastInsertRowid, bookId: 1, status: 'returned', requestedAt: '2026-07-18T08:00:00.000Z', borrowedAt: '2026-07-20T09:00:00.000Z', dueDate: '2026-08-03T09:00:00.000Z', returnedAt: '2026-08-01T10:00:00.000Z', fineAmount: 0 });
   insLoan.run({ userId: r1.lastInsertRowid, bookId: 2, status: 'borrowing', requestedAt: '2026-07-31T08:00:00.000Z', borrowedAt: '2026-08-01T09:00:00.000Z', dueDate: '2026-08-15T09:00:00.000Z', returnedAt: null, fineAmount: 0 });
   insLoan.run({ userId: r1.lastInsertRowid, bookId: 3, status: 'pending', requestedAt: '2026-08-06T08:00:00.000Z', borrowedAt: null, dueDate: null, returnedAt: null, fineAmount: 0 });

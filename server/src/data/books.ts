@@ -1,18 +1,27 @@
 // Data-access sách — lưu ở SQLite (xem ../db.js). Giữ nguyên interface cũ.
 import db from '../db.js';
+import type { Book } from '../types.js';
 
 const COLS = ['title', 'author', 'publisher', 'category', 'year', 'isbn', 'description', 'totalCopies', 'availableCopies'];
 
-export function getAll() {
-  return db.prepare('SELECT * FROM books').all();
+export interface BookQuery {
+  q?: string;
+  category?: string;
+  author?: string;
+  publisher?: string;
+  year?: string;
 }
 
-export function getById(id) {
-  return db.prepare('SELECT * FROM books WHERE id = ?').get(id);
+export function getAll(): Book[] {
+  return db.prepare('SELECT * FROM books').all() as Book[];
+}
+
+export function getById(id: number): Book | undefined {
+  return db.prepare('SELECT * FROM books WHERE id = ?').get(id) as Book | undefined;
 }
 
 // Lọc + tìm kiếm (dữ liệu nhỏ → lọc trong JS, giữ nguyên logic cũ).
-export function search({ q, category, author, publisher, year } = {}) {
+export function search({ q, category, author, publisher, year }: BookQuery = {}): Book[] {
   let result = getAll();
   if (q) {
     const s = String(q).toLowerCase();
@@ -32,16 +41,16 @@ export function search({ q, category, author, publisher, year } = {}) {
 
 export function distinct() {
   const rows = getAll();
-  const uniq = (key) => [...new Set(rows.map((b) => b[key]).filter((v) => v !== null && v !== ''))];
+  const uniq = (key: keyof Book) => [...new Set(rows.map((b) => b[key]).filter((v) => v !== null && v !== ''))];
   return {
     categories: uniq('category'),
     authors: uniq('author'),
     publishers: uniq('publisher'),
-    years: uniq('year').sort((a, b) => b - a),
+    years: (uniq('year') as number[]).sort((a, b) => b - a),
   };
 }
 
-export function create(data) {
+export function create(data: Partial<Book>): Book {
   const total = data.totalCopies ?? 1;
   const row = {
     title: data.title,
@@ -60,20 +69,20 @@ export function create(data) {
        VALUES (@title,@author,@publisher,@category,@year,@isbn,@description,@totalCopies,@availableCopies)`
     )
     .run(row);
-  return getById(info.lastInsertRowid);
+  return getById(Number(info.lastInsertRowid)) as Book;
 }
 
-export function update(id, data) {
+export function update(id: number, data: Partial<Book>): Book | null {
   const keys = Object.keys(data).filter((k) => COLS.includes(k));
   if (keys.length) {
-    const params = { id };
-    keys.forEach((k) => (params[k] = data[k]));
+    const params: Record<string, unknown> = { id };
+    keys.forEach((k) => (params[k] = (data as Record<string, unknown>)[k]));
     const set = keys.map((k) => `${k} = @${k}`).join(', ');
     db.prepare(`UPDATE books SET ${set} WHERE id = @id`).run(params);
   }
   return getById(id) || null;
 }
 
-export function remove(id) {
+export function remove(id: number): boolean {
   return db.prepare('DELETE FROM books WHERE id = ?').run(id).changes > 0;
 }

@@ -6,9 +6,10 @@ import auth from '../middleware/auth.js';
 import requireRole from '../middleware/requireRole.js';
 import { calcFine } from '../services/fine.js';
 import { LOAN_DAYS, MAX_ACTIVE_LOANS } from '../config.js';
+import type { LoanStatus } from '../types.js';
 
 const router = Router();
-const ACTIVE = ['pending', 'borrowing', 'overdue'];
+const ACTIVE: LoanStatus[] = ['pending', 'borrowing', 'overdue'];
 
 // POST /api/loans (member) — đặt mượn, tạo phiếu pending (chưa trừ kho)
 router.post('/', auth, requireRole('member'), (req, res) => {
@@ -16,11 +17,11 @@ router.post('/', auth, requireRole('member'), (req, res) => {
   const book = books.getById(bookId);
   if (!book) return res.status(404).json({ message: 'Không tìm thấy sách' });
 
-  const me = users.getById(req.user.id);
-  if (me.status === 'locked') return res.status(403).json({ message: 'Tài khoản đã bị khóa' });
+  const me = users.getById(req.user!.id);
+  if (me!.status === 'locked') return res.status(403).json({ message: 'Tài khoản đã bị khóa' });
   if (book.availableCopies <= 0) return res.status(409).json({ message: 'Sách đã hết bản' });
 
-  const myActive = loans.getByUser(req.user.id).filter((l) => ACTIVE.includes(l.status));
+  const myActive = loans.getByUser(req.user!.id).filter((l) => ACTIVE.includes(l.status));
   if (myActive.length >= MAX_ACTIVE_LOANS) {
     return res.status(409).json({ message: `Đã đạt giới hạn ${MAX_ACTIVE_LOANS} sách đang mượn` });
   }
@@ -28,12 +29,12 @@ router.post('/', auth, requireRole('member'), (req, res) => {
     return res.status(409).json({ message: 'Bạn đã có phiếu đang xử lý cho sách này' });
   }
 
-  res.status(201).json(loans.create({ userId: req.user.id, bookId, status: 'pending' }));
+  res.status(201).json(loans.create({ userId: req.user!.id, bookId, status: 'pending' }));
 });
 
 // GET /api/loans/me (member) — phiếu của chính mình
 router.get('/me', auth, (req, res) => {
-  let result = loans.getByUser(req.user.id);
+  let result = loans.getByUser(req.user!.id);
   if (req.query.status) result = result.filter((l) => l.status === req.query.status);
   res.json(result);
 });
@@ -41,7 +42,7 @@ router.get('/me', auth, (req, res) => {
 // GET /api/loans (admin) — tất cả, lọc theo status/userId/bookId
 router.get('/', auth, requireRole('admin'), (req, res) => {
   let result = loans.getAll();
-  const { status, userId, bookId } = req.query;
+  const { status, userId, bookId } = req.query as Record<string, string | undefined>;
   if (status) result = result.filter((l) => l.status === status);
   if (userId) result = result.filter((l) => l.userId === Number(userId));
   if (bookId) result = result.filter((l) => l.bookId === Number(bookId));
@@ -52,7 +53,7 @@ router.get('/', auth, requireRole('admin'), (req, res) => {
 router.get('/:id', auth, (req, res) => {
   const loan = loans.getById(Number(req.params.id));
   if (!loan) return res.status(404).json({ message: 'Không tìm thấy phiếu' });
-  if (req.user.role !== 'admin' && loan.userId !== req.user.id) {
+  if (req.user!.role !== 'admin' && loan.userId !== req.user!.id) {
     return res.status(403).json({ message: 'Không đủ quyền' });
   }
   res.json(loan);
@@ -103,9 +104,7 @@ router.patch('/:id/return', auth, requireRole('admin'), (req, res) => {
     const u = users.getById(loan.userId);
     if (u) users.update(u.id, { lateReturnCount: (u.lateReturnCount || 0) + 1 });
   }
-  res.json(
-    loans.update(loan.id, { status: 'returned', returnedAt: returnedAt.toISOString(), fineAmount: fine })
-  );
+  res.json(loans.update(loan.id, { status: 'returned', returnedAt: returnedAt.toISOString(), fineAmount: fine }));
 });
 
 export default router;
