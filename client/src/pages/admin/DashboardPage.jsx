@@ -53,7 +53,7 @@ export default function DashboardPage() {
               <XAxis dataKey="period" fontSize={12} />
               <YAxis allowDecimals={false} fontSize={12} />
               <Tooltip />
-              <Line type="monotone" dataKey="count" name="Lượt mượn" stroke="#2c6fbb" strokeWidth={2} />
+              <Line type="monotone" dataKey="count" name="Lượt mượn" stroke="#2c6fbb" strokeWidth={2} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -65,7 +65,7 @@ export default function DashboardPage() {
               <XAxis type="number" allowDecimals={false} fontSize={12} />
               <YAxis type="category" dataKey="title" width={110} fontSize={11} />
               <Tooltip />
-              <Bar dataKey="count" name="Lượt" fill="#59a14f" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="count" name="Lượt" fill="#59a14f" radius={[0, 4, 4, 0]} isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -74,7 +74,7 @@ export default function DashboardPage() {
           <h3>Cơ cấu đầu sách theo thể loại</h3>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
-              <Pie data={cat} dataKey="count" nameKey="category" outerRadius={80} label>
+              <Pie data={cat} dataKey="count" nameKey="category" outerRadius={80} label isAnimationActive={false}>
                 {cat.map((e, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Pie>
               <Tooltip />
