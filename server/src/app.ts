@@ -8,6 +8,7 @@ import dashboardRouter from './routes/dashboard.js';
 import reviewsRouter from './routes/reviews.js';
 import recommendationsRouter from './routes/recommendations.js';
 import reportsRouter from './routes/reports.js';
+import adminRouter from './routes/admin.js';
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/readers', readersRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/recommendations', recommendationsRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/admin', adminRouter);
 app.use('/api', reviewsRouter); // /api/books/:id/reviews, /api/reviews/:id, /api/books/:id/qrcode
 
 // Không khớp route nào

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import * as loansApi from '../../api/loans';
 import * as booksApi from '../../api/books';
 import * as reportsApi from '../../api/reports';
+import * as adminApi from '../../api/admin';
 import type { Loan, Book } from '../../types';
 
 const STATUS: Record<string, string> = { pending: 'Chờ duyệt', borrowing: 'Đang mượn', returned: 'Đã trả', overdue: 'Quá hạn', rejected: 'Từ chối' };
@@ -12,6 +13,23 @@ export default function AdminLoansPage() {
   const [books, setBooks] = useState<Record<number, Book>>({});
   const [filter, setFilter] = useState('');
   const [err, setErr] = useState('');
+  const [msg, setMsg] = useState('');
+
+  async function sendTestEmail() {
+    const to = window.prompt('Gửi email quá hạn mẫu tới địa chỉ nào?\n(Để trống = gửi tới SMTP_USER trong .env)', '');
+    if (to === null) return; // bấm Cancel
+    setErr(''); setMsg('');
+    try {
+      const r = await adminApi.testEmail(to || undefined);
+      setMsg(
+        r.mode === 'SMTP'
+          ? `✅ Đã gửi email quá hạn mẫu tới ${r.to} (qua SMTP). Kiểm tra hộp thư.`
+          : `ℹ️ Chưa cấu hình SMTP — email chỉ được log ra console server (dev). Đích: ${r.to}`
+      );
+    } catch (e: any) {
+      setErr('Gửi mail thất bại: ' + e.message);
+    }
+  }
 
   function load() {
     loansApi.all(filter ? { status: filter } : {}).then(async (ls) => {
@@ -32,8 +50,12 @@ export default function AdminLoansPage() {
     <div>
       <div className="page-head">
         <h1>Quản lý mượn/trả</h1>
-        <button onClick={() => reportsApi.downloadLoansCsv(filter ? { status: filter } : {})}>⬇ Export CSV</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={sendTestEmail}>📧 Test mail quá hạn</button>
+          <button onClick={() => reportsApi.downloadLoansCsv(filter ? { status: filter } : {})}>⬇ Export CSV</button>
+        </div>
       </div>
+      {msg && <div className="success">{msg}</div>}
       <div className="chart-toolbar">
         <button className={filter === '' ? 'active' : ''} onClick={() => setFilter('')}>Tất cả</button>
         {Object.entries(STATUS).map(([k, v]) => (
